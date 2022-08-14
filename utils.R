@@ -14,8 +14,8 @@ generate_scattermap = function(df_trees, date){
       lat = ~lat,
       lon = ~lon,
       marker = list(color = ~colorx, size=4),
-      type = 'scattermapbox'
-      # hovertext = us_cities[,"City"]
+      type = 'scattermapbox',
+      hovertext = paste0("id:", df_2[,1])
     ) 
   fig <- fig %>%
     layout(
@@ -28,7 +28,7 @@ generate_scattermap = function(df_trees, date){
   return(fig)
 }
 
-generate_histrogram =function(df_tress,date){
+generate_histogram =function(df_tress,date){
   
 # transform date in strings and remove Xs from column dates 
 colnames(df_trees) = gsub("X", "", colnames(df_trees), fixed=T)
@@ -173,3 +173,109 @@ create_colored_trees = function(df, date){
   
   return(df)
 }
+
+treat_dataframe = function(df_trees, date){
+  #remove duplicates
+  df_trees = df_trees[duplicated(df_trees[,"lon"]),]
+  
+  # transform date in strings and remove Xs from column dates 
+  colnames(df_trees) = gsub("X", "", colnames(df_trees), fixed=T)
+  start_date = gsub("-",".", as.character(date[1]), fixed=T)
+  end_date = gsub("-",".", as.character(date[2]), fixed=T)
+  
+  # remove trees after the input end date
+  dfg = data.frame(colnames(df_trees)) 
+  end_date_index = which(dfg[,1]==end_date)
+  df_trees = df_trees[,1:end_date_index]
+  
+  # filter non existing trees
+  last_index= tail(which(df_trees[ ,grepl(end_date, names(df_trees))] == 1), 1)
+  df_trees = df_trees[1: last_index, ]
+return(df_trees)
+}
+
+convert_date = function(date){
+  
+  # date = as.Date(c("01/02/18", "01/02/20"), format="%m/%d/%y")
+  date_converted = as.Date(c(paste0(substr(as.character(date[1]),1,8),"01"),
+                              paste0(substr(as.character(date[2]),1,8),"01")
+                             )
+                           )
+   
+  return(date_converted)           
+
+}
+
+compute_balance = function(df, date){
+  colnames(df_trees) = gsub("X", "", colnames(df_trees), fixed=T)
+  start_date = gsub("-",".", as.character(date[1]), fixed=T)
+  
+  #remove past dates 
+  dfg = data.frame(colnames(df_trees)) 
+  start_date_index = which(dfg[,1]==start_date)
+  if(start_date != dfg[4,]){
+    initial_months = seq(from=4,to=(start_date_index-1), by=1)
+    df_trees = subset(df_trees, select = -initial_months)
+  }
+  
+  # loop to count planted trees
+  df_planted_cum = data.frame(month=character(),planted=double())
+  df = df_trees
+  for(col in 4:ncol(df_trees)){
+    
+    
+    # sum planted three in a specific month
+    if(col!=4){
+      n_planted = sum(df[,col], na.rm = TRUE)
+    } else {n_planted = 0}
+    
+    # add new n of planted trees
+    
+    df_planted_cum[col-3,] = c(colnames(df)[col], n_planted)
+    
+    #filter by removing counted trees
+    df = subset(df, is.na(df[,col]))
+    
+  }
+  
+  # create column with cumulative sum
+  df_planted_cum[,"planted_cum"] = cumsum(df_planted_cum$planted)
+  
+  
+  # loop to count downed trees
+  df_downed_cum = data.frame(month=character(),downed_cum=double())
+  df = df_trees
+  for(col in 4:ncol(df_trees)){
+    
+    # filter all with NAN
+    df_nan = subset(df, is.na(df[,col]))
+    
+    # filter all existing tree before current time
+    if(col==4) var = -1 else if(col==5) var = 0 else var = 1
+    df_nan$rowsum = rowSums(df_nan[,4:(col-var)], na.rm=TRUE)
+    df_downed = subset(df_nan, rowsum > 0)
+    
+    # find indexes of downed tress
+    downed_indexes = as.numeric(rownames(df_downed))
+    
+    # sum planted three in a specific month
+    if(col==4) n_downed = 0 else n_downed = dim(df_downed)[1]
+    
+    # add new n of planted treesdf_
+    df_downed_cum[col-3,] = c(colnames(df)[col], n_downed)
+  }
+  
+  planted = as.numeric(tail(df_planted_cum$planted_cum,1))
+  downed = as.numeric(tail(df_downed_cum$downed_cum,1))
+  balance = planted-downed
+  
+
+return(balance)
+  
+}
+
+
+
+
+
+
