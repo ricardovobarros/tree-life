@@ -19,7 +19,7 @@ ui <- fluidPage(
     tabPanel(
       "Dashboard",
       wellPanel(
-        "Input Panel",
+        tags$b("Input Panel"),
         dateRangeInput(
           "daterange",
           "Date Range",
@@ -42,12 +42,12 @@ ui <- fluidPage(
       withSpinner(plotlyOutput("scattermap"),
                   type = 1
                   ),
-      withSpinner(plotlyOutput("cumulative"),
-                  type = 1
-                  ),
       withSpinner(plotlyOutput("histogram"),
                   type = 1
-      )
+                  ),
+      withSpinner(plotlyOutput("cumulative"),
+                  type = 1
+                  )
       
       
     ),
@@ -61,6 +61,7 @@ ui <- fluidPage(
 # Define server logic required to draw a histogram
 server <- function(input, output) {
   
+  
   # Read data-frame
   df = reactive({ 
     treat_dataframe(read.csv("tree-data.csv"), 
@@ -68,26 +69,26 @@ server <- function(input, output) {
                     )
   })
   
-  # # save tree balance
-  # balance() = eventReactive({
-  #           compute_balance(treat_dataframe(read.csv("tree-data.csv"), 
-  #                             convert_date(input$daterange)),
-  #                           convert_date(input$daterange
-  #                                        )
-  #                           )
-  #                           
-  #   
-  # })
+  balance = reactive({
+    compute_balance(treat_dataframe(read.csv("tree-data.csv"), convert_date(input$daterange)),
+                    convert_date(input$daterange))
+  })
   
+  observe(print(balance()))
+  observe(print(input$daterange))
+
   # generate text 
   output$text = renderUI({
+    if (input$updatemap>=0) { 
     HTML(paste("Tree balance of",
-                tags$strong(compute_balance(df(), convert_date(input$daterange))),
+               # 4,
+                tags$strong(isolate(balance())),
                 "tree(s) between",
-                tags$b(input$daterange[1]),
+                isolate(tags$b(input$daterange[1])),
                 "and",
-                tags$b(input$daterange[2]))
+                isolate(tags$b(input$daterange[2])))
               )
+    }
     
   })
 
@@ -106,7 +107,7 @@ server <- function(input, output) {
     if (input$updatemap>=0) { 
       isolate(generate_cumulative(df(),
                                   convert_date(input$daterange)
-                                  )[[1]]
+                                  )
               ) 
     }
   })

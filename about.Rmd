@@ -1,59 +1,39 @@
 ---
 title: "about"
 author: "Ricardo Barros"
-date: '2022-03-29'
+date: '2022-08-15'
 output: html_document
 runtime: shiny
 ---
 
-# NYair
-NYair is an [open source]() web application written in R that provides a big picture over the air quality
-status in New York city between 1990 and 2020. The app provides two maps that summarize and estimate the   pollutants Carbon Monoxide (CO), Nitrogen Dioxide (NO2), Sulfur Dioxide (SO2), and Ozone (O3).
+# Tree-life
+Tree-life is an [open source](https://github.com/ricardovobarros/tree-life) web application written in R, developed to support intuitions in tracking reforested trees. The input is a log with the dates where the trees were planted and cut. The trees are identified by a GPS coordinate and ID. The app displays the following plots in order from top to bottom:
 
-+ __Neighborhood Map__ displays the estimated average of a pollutant concentration within a specified time period. By moving the mouse pointer over the map, the user can see the estimated average of the pollutant in a neighborhood and the distance to the nearest air quality monitor. 
++ __Positioning Map__ displays the living and dead trees from the date of first log of the input dataset until the end date given by the user. 
 
-+ __Monitors Map__ shows the annual average and standard deviation of a selected pollutant concentration from measurements made by a monitor. In New York, there are 25 monitors scattered throughout the city, and the measurements were taken between 1990 and 2020.     
++ __histogram__ shows the total number of the living and dead trees within their age in months of life or downed-age, respectively. 
+
++ __cumulative curve__ displays the sum of planted and downed trees between dates given as input by the user. 
  
 
-### Data source
-The United States Environmental Protection Agency (EPA) provides open annual summary data as well as hourly and daily data in the categories of criteria gases, particulates, meteorological, and toxics. Click [here](https://console.cloud.google.com/marketplace/product/epa/historical-air-quality?project=fiery-webbing-340301) to access the dataset.
+### Why?
 
-### Neighborhood Map
-The monitors that measure air quality in New York are located throughout the city, but not all neighborhoods have a monitor nearby. To obtain an estimate of the concentration of pollutants in a neighborhood without an air monitor, the values from nearby monitors are interpolated. The method used to calculate these estimates take into account the distances between a neighborhood and the monitors and their readings. In using these two variables to estimate the average concentration of a pollutant in a neighborhood, three issues were considered. 
-
-+ The greater the distance between a neighborhood and a measuring device, the less influence the measuring device's measurements have on the estimate.
-+ Neighborhoods that are less than 500 m away from a measuring device should be strongly influenced by the measurements of this measuring device. 
-+ Monitors that are more than 500m away from a neighborhood should have a exponential decrease in influence on a pollutant estimate of a neighborhood.
-
-To meet the above criteria, Neighborhood Map calculates the concentration as a weighted average of a pollutant within a user-specified time window. The weight is a function of the distance __d__ between the center of a neighborhood and the monitors (see equation below).
-
-<b><center>weight(d) = 1 : if (d<500m)</center></b><br/>
-<b><center>and</center></b> <br/>
-<b><center>weight(d) = e^(d/500*ln[0.5]) : if (d>500m)</center></b> <br/>
+Planting trees and tracking their removal is common practice for many organizations. For example, a non-governmental organization may have the goal of reforesting in a protected area where illegal logging is taking place, or a paper industry may want to ensure the positive balance of its stock of remaining trees and their age. Tree-life can meet both exemplary requirements.
 
 
-where __d__ is the vector distance between a neighborhood and the monitors, and __weight(d)__ is the weight vector.
+### Example
 
-The weighting function assumes that monitoring devices within a 500-meter radius have a large impact on the concentration of pollutants in a neighborhood (weight equal to one). In addition, monitors outside this radius have an exponential decay function to compute their weights, which starts at 50% (see figure below).
+The example shown at the beginning of the application was inspired by the work of the NGO [Fairventures](https://fairventures.earth/). By 2020, the NGO has reached the mark of one million trees planted in Indonesia. Workers involved in the project can use a mobile app, also developed by [Fairventure](https://treeo.one/lang/en/about-us), to monitor deforestation and tree CO2 consumption over time.
 
-<center><img src="https://raw.githubusercontent.com/ricardovobarros/NYair/main/img/graph/weight_function.jpeg" alt="weight function" class="center"></center>
+Tanjung Puting National Park (region exemplified by Tree-life) is a national park in Indonesia in the Indonesian province of Central Kalimantan (Central Borneo), known for protecting orangutans. In recent years, the park has been heavily deforested due to logging and mining activities.
 
-Finally, the estimated concentration of a neighborhood can be computed by taking the weighted average of the monitors' average readings and their respective weights (see equation below).
-
-<b><center>c_nei = weights*c_me/sum(weights)</center></b>
-
-where __c_nei__ is the estimated concentration in a neighborhood, __c_me__ is a vector containing the average of the monitors in a given period, and weights is a vector containing the weights of the monitors.
-
-### Monitors Map
-The map of monitors shows the annual average and standard deviation of the concentration of a given pollutant in a monitor. The map shows the pollutant measured between 1990 and 2020 compared to the average concentration of the entire city (i.e., the urban average). 
 
 ### Additional Information
 
-+ [GitHub repository](https://github.com/ricardovobarros/NYair)
-+ [Detailed Report](https://github.com/ricardovobarros/NYair/blob/main/nyair_analysis.pdf)
-+ [SQL code](https://github.com/ricardovobarros/NYair/blob/main/sql_code.md)
++ [GitHub repository](https://github.com/ricardovobarros/tree-life)
 + [Ricardo Barros Portfolio](https://ricardovobarros.github.io/)
++ [Contact me](<mailto:ricardovobarros@live.com>)
 
-__[COPY RIGHT](https://github.com/ricardovobarros/NYair/blob/main/LICENSE) Ricardo Barros 2022__
+__[COPY RIGHT](https://github.com/ricardovobarros/tree-life/blob/main/LICENSE) Ricardo Barros 2022__
 
 

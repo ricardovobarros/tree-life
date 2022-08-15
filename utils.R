@@ -62,7 +62,7 @@ fig <- fig %>% add_histogram(x = df_trees_alive$life_time, name="alive",
                              marker = list(color="green"),
                              opacity=0.6)
 if (nrow(df_trees_dead!=0)){
-  fig <- fig %>% add_histogram(x = df_trees_dead$life_time, name= "downed",
+  fig <- fig %>% add_histogram(x = df_trees_dead$life_time, name= "dead",
                              marker = list(color="red"),
                              opacity=0.6)
 }
@@ -135,6 +135,11 @@ for(col in 4:ncol(df_trees)){
   df_downed_cum[col-3,] = c(colnames(df)[col], n_downed)
 }
 
+print("_________________________________")
+print(df_downed_cum)
+print(df_planted_cum)
+print("_________________________________")
+
 #plot cumulative line
 fig_cum = plot_ly(df_downed_cum, x= ~month)
 fig_cum = fig_cum %>% add_lines(y=~downed_cum, name="downed", line=list(color="red"))
@@ -169,7 +174,7 @@ create_colored_trees = function(df, date){
   
   # create e column in the data-frame with conditional
   df$colorx = ifelse(is.na(df[ ,grepl(end_date, names(df))]), 
-                     "red", "blue")
+                     "red", "green")
   
   return(df)
 }
@@ -201,12 +206,15 @@ convert_date = function(date){
                               paste0(substr(as.character(date[2]),1,8),"01")
                              )
                            )
-   
+  
+  print(date_converted) 
   return(date_converted)           
 
 }
 
 compute_balance = function(df, date){
+  
+  
   colnames(df_trees) = gsub("X", "", colnames(df_trees), fixed=T)
   start_date = gsub("-",".", as.character(date[1]), fixed=T)
   
@@ -266,15 +274,37 @@ compute_balance = function(df, date){
   }
   
   planted = as.numeric(tail(df_planted_cum$planted_cum,1))
-  downed = as.numeric(tail(df_downed_cum$downed_cum,1))
+  
+  df_tmp_p = df_planted_cum %>% filter(month == gsub("-",".", as.character(date[2])))
+  df_tmp_d = df_downed_cum %>% filter(month == gsub("-",".", as.character(date[2])))
+  downed = as.numeric(df_tmp_d$downed_cum)
+  planted = as.numeric(df_tmp_p$planted_cum)
   balance = planted-downed
   
+  
+  
+  
+  print(df_planted_cum)
+  print(df_downed_cum)
+  
+  print(date)
+  print(planted)
+  print(downed)
+  print(balance)
 
 return(balance)
   
 }
 
 
+#load data 
+df_trees = read.csv("tree-data.csv")
+
+# define date interval
+date = as.Date(c("01/01/13", "01/01/21"), format="%m/%d/%y")
+
+# modify data-frame 
+df_trees = treat_dataframe(df_trees, date)
 
 
 
